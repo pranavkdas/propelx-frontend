@@ -25,9 +25,9 @@ export interface CurrentExperimentState extends NewExperimentState {
 
 export const initialState: CurrentExperimentState = {
     experimentName: "",
-    productName: 'Chandrika Soap',
-    productDescription: "Chandrika Soap is made of Ayurvedic materials and has medicinal benefits",
-    marketingObjective: "Sales",
+    productName: '',
+    productDescription: "",
+    marketingObjective: "",
     nodes: [],
     edges: [],
     hypothesisList: [],
