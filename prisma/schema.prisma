@@ -1,0 +1,49 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model MarketingExperiment {
+  id                          String            @id @default(uuid())
+  hypothesisId                String
+  hypothesis                  String
+  hypothesisAlias             String
+  rationale                   String
+  targetAudienceDescription   String
+  targetAudienceAlias         String
+  confidenceScore             Float
+  effortLevel                 String
+  startDate                   DateTime
+  endDate                     DateTime
+  channels                    MarketingChannel[]
+  metrics                     MarketingMetrics[]
+  createdAt                   DateTime          @default(now())
+  updatedAt                   DateTime          @updatedAt
+}
+
+enum MarketingChannel {
+  META
+  GOOGLE
+}
+
+model MarketingMetrics {
+  id            String             @id @default(uuid())
+  experimentId  String
+  experiment    MarketingExperiment @relation(fields: [experimentId], references: [id])
+  channel       MarketingChannel
+  date          DateTime
+  clicks        Int
+  impressions   Int
+  roi           Float
+  cpc           Float
+  cost          Float
+  conversions   Int
+  createdAt     DateTime           @default(now())
+  updatedAt     DateTime           @updatedAt
+
+  @@index([experimentId, channel, date])
+}
