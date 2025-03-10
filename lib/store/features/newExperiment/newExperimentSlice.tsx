@@ -5,11 +5,9 @@ import {
     type Edge,
 } from '@xyflow/react';
 import { v4 as uuidv4 } from 'uuid';
-import { generateInitialHypotheses, generateTargetAudienceForHypothesis } from '@/lib/store/features/newExperiment/newExperimentAPI'
+import { generateInitialHypotheses, generateTargetAudienceForHypothesis, generateSummaryForBranch, generateSummaryForAllBranches } from '@/lib/store/features/newExperiment/newExperimentAPI'
 
-import { NewExperimentState, SourceNodeId, initialState, CurrentExperimentState } from '@/lib/store/features/newExperiment/newExperimentConstants'
-
-const edgeType = 'simplebezier';
+import { NewExperimentState, SourceNodeId, initialState, CurrentExperimentState, edgeType } from '@/lib/store/features/newExperiment/newExperimentConstants'
 
 // Given the following information, generate 3 hypothesis strictly in the given format.
 
@@ -48,7 +46,7 @@ export const newExperimentSlice = createAppSlice({
                     {
                         id: marketing_channel_nodeId,
                         type: 'marketingChannelNode',
-                        data: { hypothesis: 'super hypothesis' },
+                        data: { marketingChannel: '' },
                         position: { x: 250, y: 25 },
                     }
                 ]
@@ -157,6 +155,144 @@ export const newExperimentSlice = createAppSlice({
                 },
             }
         ),
+        connectEdges: create.reducer(
+            (state, action: PayloadAction<any>) => {
+                const edgeId = uuidv4();
+                // HANDLE THE CASE WHEN ONE OF THE NODES IS FREE AND OTHER IS CONNECTED. ALSO WHEN BOTH NODES ARE FREE.
+                state.edges.push(...[
+                    {
+                        id: edgeId,
+                        source: action.payload.sourceNodeId,
+                        target: action.payload.targetNodeId,
+                        type: edgeType,
+                        animated: true,
+                    }])
+            }
+        ),
+        onDragNDropNode: create.reducer(
+            (state, action: PayloadAction<any>) => {
+                const nodeId = uuidv4();
+                state.freeNodes.push(...[
+                    {
+                        id: nodeId,
+                        type: action.payload.nodeType,
+                        data: { hypothesis: '', alias: '', rationale: '', estimatedImpact: '', estimatedEffort: '' },
+                        position: action.payload.position,
+                    },
+                ]
+                );
+            }
+        ),
+        generateSummaryOfTreeBranch: create.asyncThunk(
+            // async (id: string, thunkApi) => { if you have things to pass to the function
+            async (data, thunkAPI) => {
+                // Generate IDs here
+                const state = thunkAPI.getState()
+                const nodeIdDict = state.newExperiment.nodes.reduce((nodeIdDict, node) => { nodeIdDict[node.id] = node; return nodeIdDict }, {})
+                const edgeTargetIdSourceIdDict = state.newExperiment.edges.reduce((edgeTargetIdSourceIdDict, edge) => { edgeTargetIdSourceIdDict[edge.target] = edge.source; return edgeTargetIdSourceIdDict }, {})
+                let sourceNodeId = data.sourceNodeId
+                let summaryDataDict = []
+
+                const lastNode = nodeIdDict[sourceNodeId]
+
+                summaryDataDict.push({ [lastNode.type]: lastNode.data })
+
+                while (true) {
+                    const newSourceNodeId = edgeTargetIdSourceIdDict[sourceNodeId] ?? null;
+                    if (!newSourceNodeId) break;
+                    const sourceNode = nodeIdDict[newSourceNodeId] ?? null;
+                    if (!sourceNode) break;
+                    const nodeType = sourceNode.type
+                    summaryDataDict.unshift({ [nodeType]: sourceNode.data })
+                    sourceNodeId = newSourceNodeId;
+                }
+
+                let summaryData = ''
+                summaryDataDict.forEach((item) => { summaryData += JSON.stringify(item) })
+
+
+                const summary = await generateSummaryForBranch(summaryData)
+                return summary
+            },
+            {
+                pending: (state) => {
+                    state.marketingSummaryOfBranchLoading = true
+                },
+                rejected: (state, action) => {
+                    state.error = action.error
+                },
+                fulfilled: (state, action) => {
+                    state.data.summary = action.payload
+                },
+                settled: (state, action) => {
+                    state.marketingSummaryOfBranchLoading = false
+                },
+            }
+        ),
+        deleteSummary: create.reducer(
+            (state) => {
+                state.data.summary = null
+            }
+        ),
+        setMarketingChannelForNode: create.reducer(
+            (state, action: PayloadAction<any>) => {
+                let sourceNodeId = action.payload.sourceNodeId
+                let marketingChannel = action.payload.marketingChannel
+                state.nodes.forEach((item) => { if (item.id === sourceNodeId) { item.data.marketingChannel = marketingChannel } })
+            }
+        ),
+        generateSummaryOfAllBranches: create.asyncThunk(
+            // async (id: string, thunkApi) => { if you have things to pass to the function
+            async (data, thunkAPI) => {
+                // Generate IDs here
+                const state = thunkAPI.getState()
+                const nodeIdDict = state.newExperiment.nodes.reduce((nodeIdDict, node) => { nodeIdDict[node.id] = node; return nodeIdDict }, {})
+                const edgeTargetIdSourceIdDict = state.newExperiment.edges.reduce((edgeTargetIdSourceIdDict, edge) => { edgeTargetIdSourceIdDict[edge.target] = edge.source; return edgeTargetIdSourceIdDict }, {})
+                let sourceNodeIdList = state.newExperiment.nodes.filter((node) => node.type == 'marketingChannelNode')
+                let finalDetails = ''
+                sourceNodeIdList.forEach((node) => {
+                    let summaryDataDict = []
+                    let sourceNodeId = node.id
+
+                    const lastNode = nodeIdDict[sourceNodeId]
+
+                    summaryDataDict.push({ [lastNode.type]: lastNode.data })
+
+                    while (true) {
+                        const newSourceNodeId = edgeTargetIdSourceIdDict[sourceNodeId] ?? null;
+                        if (!newSourceNodeId) break;
+                        const sourceNode = nodeIdDict[newSourceNodeId] ?? null;
+                        if (!sourceNode) break;
+                        const nodeType = sourceNode.type
+                        summaryDataDict.unshift({ [nodeType]: sourceNode.data })
+                        sourceNodeId = newSourceNodeId;
+                    }
+
+                    let summaryData = ''
+                    summaryDataDict.forEach((item) => { summaryData += JSON.stringify(item) })
+
+                    finalDetails = finalDetails + summaryData + '\n\n'
+                })
+
+                const summary = await generateSummaryForAllBranches(finalDetails)
+                // return summary
+                return summary
+            },
+            {
+                pending: (state) => {
+                    state.marketingSummaryOfBranchLoading = true
+                },
+                rejected: (state, action) => {
+                    state.error = action.error
+                },
+                fulfilled: (state, action) => {
+                    state.data.allStrategySummary = action.payload
+                },
+                settled: (state, action) => {
+                    state.marketingSummaryOfBranchLoading = false
+                },
+            }
+        ),
     }),
     // You can define your selectors here. These selectors receive the slice
     // state as their first argument.
@@ -166,15 +302,20 @@ export const newExperimentSlice = createAppSlice({
             return { 'experimentName': experimentName, 'productName': productName }
         },
         getNodesOfExperiment: (state: CurrentExperimentState) => state.nodes,
+        getFreeNodesOfExperiment: (state: CurrentExperimentState) => state.freeNodes,
         getEdgesOfExperiment: (state: CurrentExperimentState) => state.edges,
         isHypothesisListLoading: (state: CurrentExperimentState) => state.hypothesisListLoading,
         isTargetAudienceLoading: (state: CurrentExperimentState) => state.targetAudienceLoading,
+        isMarketingSummaryOfBranchLoading: (state: CurrentExperimentState) => state.marketingSummaryOfBranchLoading,
+        getSummaryOfBranch: (state: CurrentExperimentState) => state.data.summary,
+        getAllStrategySummary: (state: CurrentExperimentState) => state.data.allStrategySummary,
+        getAllBranches: (state: CurrentExperimentState) => state.nodes.filter((node) => node.type == 'marketingChannelNode')
     }
 });
 
 // Action creators are generated for each case reducer function.
-export const { addNewExperiment, setProductNode, generateThreeHypothesisNodes, generateTargetAudienceNode, generateMarketingChannelNode } =
+export const { addNewExperiment, setProductNode, generateThreeHypothesisNodes, generateTargetAudienceNode, generateMarketingChannelNode, connectEdges, onDragNDropNode, generateSummaryOfTreeBranch, deleteSummary, generateSummaryOfAllBranches, setMarketingChannelForNode } =
     newExperimentSlice.actions;
 
 // Selectors returned by `slice.selectors` take the root state as their first argument.
-export const { getNewExperimentName, getNodesOfExperiment, getEdgesOfExperiment, isHypothesisListLoading, isTargetAudienceLoading } = newExperimentSlice.selectors;
+export const { getNewExperimentName, getNodesOfExperiment, getEdgesOfExperiment, isHypothesisListLoading, isTargetAudienceLoading, getFreeNodesOfExperiment, isMarketingSummaryOfBranchLoading, getSummaryOfBranch, getAllStrategySummary, getAllBranches } = newExperimentSlice.selectors;

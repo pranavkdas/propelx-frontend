@@ -25,3 +25,7 @@ export const TargetAudienceSchema = z.object({
     targetAudienceAlias: z.string(),
     targetAudienceDescription: z.string()
 });
+
+export const totalSummarySchema = z.object({
+    summaryList: z.array(z.string()), // ✅ Wrap in an object
+});

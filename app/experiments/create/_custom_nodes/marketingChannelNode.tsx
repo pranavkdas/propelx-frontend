@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { Handle, Position } from '@xyflow/react';
 import styles from './experiment.module.css'
 import {
@@ -9,14 +9,26 @@ import {
     CardHeader,
     CardTitle,
 } from "@/components/ui/card"
-import { Textarea } from "@/components/ui/textarea";
+import {
+    Dialog,
+    DialogClose,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+    DialogTrigger,
+} from "@/components/ui/dialog"
 import { Label } from "@/components/ui/label"
-import { Input } from '@/components/ui/input';
 import { Button } from "@/components/ui/button";
 import { useNodeId } from '@xyflow/react';
-import { useAppDispatch } from "@/lib/store/hooks";
-import { generateMarketingChannelNode } from "@/lib/store/features/newExperiment/newExperimentSlice";
+import { Textarea } from "@/components/ui/textarea"
+import { useAppDispatch, useAppSelector } from "@/lib/store/hooks";
+import { generateSummaryOfTreeBranch, isMarketingSummaryOfBranchLoading, getSummaryOfBranch, deleteSummary, setMarketingChannelForNode } from "@/lib/store/features/newExperiment/newExperimentSlice";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import ClipLoader from "react-spinners/ClipLoader";
+import { AnimatedSubscribeButton } from "@/components/magicui/animated-subscribe-button";
+import { Copy, Check } from "lucide-react"
 
 const handleStyle = { height: 10, width: 10 };
 
@@ -26,11 +38,35 @@ function marketingChannelNode({ data }) {
     }, []);
 
     const nodeId = useNodeId();
+    const [showSummaryLoading, setShowSummaryLoading] = useState(false)
+    const [summarySourceNodeId, setSummarySourceNodeId] = useState(null)
+    const [open, setOpen] = useState(false);
+
     const dispatch = useAppDispatch();
+    const loading = useAppSelector(isMarketingSummaryOfBranchLoading);
+    const summary = useAppSelector(getSummaryOfBranch);
 
     const handleGenerateSummary = () => {
-        console.log(nodeId, 'nodeID');
-        // dispatch(generateMarketingChannelNode({ sourceNodeId: nodeId }));
+        setShowSummaryLoading(true)
+        setSummarySourceNodeId(nodeId)
+        dispatch(generateSummaryOfTreeBranch({ sourceNodeId: nodeId }));
+    }
+
+    useEffect(() => {
+        if (!loading) {
+            setShowSummaryLoading(false)
+            if (summary && summarySourceNodeId && summarySourceNodeId === nodeId) {
+                setOpen(true)
+            }
+            else {
+                setOpen(false)
+                setSummarySourceNodeId(null)
+            }
+        }
+    }, [loading, summary])
+
+    const onCopyToClipBoardClick = async () => {
+        await navigator.clipboard.writeText(summary);
     }
 
     return (
@@ -46,23 +82,60 @@ function marketingChannelNode({ data }) {
                     <Label htmlFor="hypothesis-heading">Marketing Channel</Label>
                 </CardHeader>
                 <CardContent>
-                    <Select>
+                    <Select onValueChange={(value) => dispatch(setMarketingChannelForNode({ sourceNodeId: nodeId, marketingChannel: value }))}>
                         <SelectTrigger>
                             <SelectValue placeholder="Select Marketing Channel" />
                         </SelectTrigger>
                         <SelectContent>
-                            <SelectItem value="awareness">Google</SelectItem>
-                            <SelectItem value="sales">Meta</SelectItem>
+                            <SelectItem value="google">Google</SelectItem>
+                            <SelectItem value="meta">Meta</SelectItem>
                         </SelectContent>
                     </Select>
                 </CardContent>
                 <CardFooter className='flex flex-row gap-4'>
-                    <Button variant="outline" size="sm" className="mt-4 h-12 w-1/2">
+                    <Button variant="outline" size="sm" className="mt-4 h-12 w-1/3">
                         Delete node
                     </Button>
-                    <Button variant="default" size="sm" className="mt-4 h-12 w-1/2" onClick={handleGenerateSummary}>
-                        Generate Summary
-                    </Button>
+                    <Dialog open={open} onOpenChange={() => { if (open) { setOpen(false); dispatch(deleteSummary()); } else { setOpen(true); dispatch(deleteSummary()); } }}>
+                        <Button variant="default" size="sm" className="mt-4 h-12 w-2/3" onClick={handleGenerateSummary}>
+                            {loading && showSummaryLoading ? <span className="group inline-flex items-center">
+                                <ClipLoader color={"#ffffff"} size={15} className="mr-2" />
+                                Generating Summary
+                            </span> :
+                                <span className="group inline-flex items-center font-normal"> Generate Summary</span>
+                            }
+                        </Button>
+                        <DialogContent className="sm:max-w-xl h-[400px]">
+                            <DialogHeader>
+                                <DialogTitle>Copy message</DialogTitle>
+                            </DialogHeader>
+                            <div className="flex items-center space-x-2">
+                                <div className="grid flex-1 gap-2">
+                                    <Label htmlFor="link" className="sr-only">
+                                        Text to copy
+                                    </Label>
+                                    <Textarea defaultValue={summary} className='h-[256px]' readOnly={true} />
+                                </div>
+                            </div>
+                            <DialogFooter className="md:justify-start">
+                                <AnimatedSubscribeButton type="submit" className="text-sm" onClick={onCopyToClipBoardClick}>
+                                    <span className="group inline-flex items-center font-normal">
+                                        <Copy className="size-4 mr-1" />Copy
+                                    </span>
+                                    <span className="group inline-flex items-center">
+                                        <Check className="mr-2 size-4" />
+                                        Copied
+                                    </span>
+                                </AnimatedSubscribeButton>
+                                <DialogClose asChild>
+                                    <Button type="button" variant="secondary" className="bg-gray-100" onClick={() => { setOpen(false); dispatch(deleteSummary()); }}>
+                                        Close
+                                    </Button>
+                                </DialogClose>
+                            </DialogFooter>
+                        </DialogContent>
+                    </Dialog>
+
                 </CardFooter>
             </Card>
             <Handle
@@ -72,7 +145,7 @@ function marketingChannelNode({ data }) {
                 isConnectable={true}
                 style={handleStyle}
             />
-        </div>
+        </div >
     );
 }
 

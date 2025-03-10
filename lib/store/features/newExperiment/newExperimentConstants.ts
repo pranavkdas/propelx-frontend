@@ -15,25 +15,29 @@ export interface NewExperimentState {
 
 export interface CurrentExperimentState extends NewExperimentState {
     nodes: Array<Node>,
+    freeNodes: Array<Node>,
     edges: Array<Edge>,
     hypothesisList: Array<NewHypothesisState>,
     data: any
     hypothesisListLoading: boolean,
     targetAudienceLoading: boolean,
+    marketingSummaryOfBranchLoading: boolean,
     error: any,
 }
 
 export const initialState: CurrentExperimentState = {
     experimentName: "",
     productName: '',
+    freeNodes: [],
     productDescription: "",
-    marketingObjective: "",
+    marketingObjective: null,
     nodes: [],
     edges: [],
     hypothesisList: [],
     data: {},
     hypothesisListLoading: false,
     targetAudienceLoading: false,
+    marketingSummaryOfBranchLoading: false,
     error: null,
 };
 
@@ -42,7 +46,7 @@ export interface SourceNodeId {
     sourceNodeId: string;
 }
 
-
+export const edgeType = 'simplebezier';
 
 // export const initialState: CurrentExperimentState = {
 
@@ -50,6 +54,8 @@ export interface SourceNodeId {
 //     productName: 'Chandrike',
 //     productDescription: 'Test',
 //     marketingObjective: 'Sales',
+//     freeNodes: [],
+//     marketingSummaryOfBranchLoading: false,
 //     nodes: [
 //         {
 //             id: 'product_node',

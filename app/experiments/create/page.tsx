@@ -23,15 +23,8 @@ import targetAudienceNode from './_custom_nodes/targetAudienceNode'
 import marketingChannelNode from './_custom_nodes/marketingChannelNode'
 import { useAppDispatch, useAppSelector } from "@/lib/store/hooks";
 import ConnectionLine from './_custom_nodes/ConnectionLine';
-import { getNodesOfExperiment, getEdgesOfExperiment, setProductNode } from "@/lib/store/features/newExperiment/newExperimentSlice";
+import { getNodesOfExperiment, getEdgesOfExperiment, setProductNode, connectEdges, onDragNDropNode, getFreeNodesOfExperiment } from "@/lib/store/features/newExperiment/newExperimentSlice";
 import getLayoutedElements from './dagreGraphHelper'
-
-const edgeOptions = {
-    animated: true,
-    style: {
-        stroke: 'black',
-    },
-};
 
 const nodeTypes = { hypothesisNode: hypothesisNode, productNode: productNode, targetAudienceNode: targetAudienceNode, marketingChannelNode: marketingChannelNode };
 
@@ -42,6 +35,7 @@ function Flow() {
 
     const reactFlowWrapper = useRef(null);
     const defaultNodes = useAppSelector(getNodesOfExperiment)
+    const freeNodes = useAppSelector(getFreeNodesOfExperiment)
     const defaultEdges = useAppSelector(getEdgesOfExperiment)
     const [nodes, setNodes, onNodesChange] = useNodesState(defaultNodes);
     const [edges, setEdges, onEdgesChange] = useEdgesState(defaultEdges);
@@ -53,8 +47,8 @@ function Flow() {
     const getId = () => `dndnode_${nodeId++}`;
 
     const onConnect = useCallback(
-        // add     type: 'smoothstep', in edges
-        (params) => { console.log('params', params); setEdges((eds) => addEdge(params, eds)); },
+        // (params) => { console.log('params', params); setEdges((eds) => addEdge(params, eds)); },
+        (params) => { dispatch(connectEdges({ sourceNodeId: params.source, targetNodeId: params.target })) },
         [],
     );
 
@@ -64,9 +58,6 @@ function Flow() {
     }, []);
 
     useEffect(() => {
-        console.log("Default Nodes:", defaultNodes);
-        console.log("Default Edges:", defaultEdges);
-
         if (defaultNodes.length === 0) {
             console.log('inside')
             dispatch(setProductNode());
@@ -77,42 +68,29 @@ function Flow() {
             defaultEdges,
             'LR'
         );
+        const finalNodes = nodes.concat(freeNodes);
 
-        setNodes(nodes)
+        setNodes(finalNodes)
         setEdges(edges)
 
         // setViewport({ x: 250, y: 25, zoom: 0.5 }, { duration: 200 });
-        setViewport({ x: 250, y: 25, zoom: 0.5 });
+        // setViewport({ x: 250, y: 25, zoom: 0.5 });
 
-    }, [defaultNodes, defaultEdges])
+    }, [defaultNodes, defaultEdges, freeNodes])
 
     const onDrop = useCallback(
         (event) => {
             event.preventDefault();
-            // console.log(event.dataTransfer.getData(
-            //     'application/reactflow'
-            // ))
-            // console.log('insideDrop', type, data)
-            // check if the dropped element is valid
+
             if (!type) {
                 return;
             }
 
-            // project was renamed to screenToFlowPosition
-            // and you don't need to subtract the reactFlowBounds.left/top anymore
-            // details: https://reactflow.dev/whats-new/2023-11-10
             const position = screenToFlowPosition({
                 x: event.clientX,
                 y: event.clientY,
             });
-            const newNode = {
-                id: getId(),
-                type,
-                position,
-                data: data,
-            };
-
-            setNodes((nds) => nds.concat(newNode));
+            dispatch(onDragNDropNode({ position: position, nodeType: type }))
         },
         [screenToFlowPosition, type],
     );
@@ -172,6 +150,7 @@ export default function () {
                     <Sidebar />
                 </ResizablePanel>
             </ResizablePanelGroup>
+
         </div >
     );
 }

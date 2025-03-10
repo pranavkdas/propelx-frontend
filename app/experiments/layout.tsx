@@ -1,4 +1,5 @@
 import SidebarLayout from "@/components/ui/sidebarlayout";
+import { Toaster } from "@/components/ui/toaster"
 
 export default function ExperimentsLayout({
     children,
@@ -8,6 +9,7 @@ export default function ExperimentsLayout({
     return (
         <SidebarLayout>
             {children}
+            <Toaster />
         </SidebarLayout>
     );
 }
