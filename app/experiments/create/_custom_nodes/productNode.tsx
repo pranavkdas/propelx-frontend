@@ -70,7 +70,7 @@ function productNode({ data }) {
                             id="hypothesis-feedback"
                             placeholder="Enter your feedback"
                             className="h-12 text-xs"
-                            value={data}
+                            value={hypothesisFeedback}
                             onChange={(event) => setHypothesisFeedback(event.target.value)}
                             onBlur={(e) => handleUpdateNode('hypothesisFeedback', e.target.value)}
                         />
