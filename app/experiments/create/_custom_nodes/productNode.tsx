@@ -1,6 +1,5 @@
 import { useCallback, useState } from 'react';
 import { Handle, Position } from '@xyflow/react';
-import styles from './experiment.module.css'
 import {
     Card,
     CardContent,
@@ -13,19 +12,22 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label"
 import { Input } from '@/components/ui/input';
 import {
-    generateThreeHypothesisNodes, isHypothesisListLoading
+    generateThreeHypothesisNodes, isHypothesisListLoading, updateNode
 } from "@/lib/store/features/newExperiment/newExperimentSlice";
 import ClipLoader from "react-spinners/ClipLoader";
 import { useAppDispatch, useAppSelector } from "@/lib/store/hooks";
 import { Button } from "@/components/ui/button";
+import { useNodeId } from '@xyflow/react';
 
 const handleStyle = { height: 10, width: 10 };
 
 function productNode({ data }) {
 
-    const [hypothesisFeedback, setHypothesisFeedback] = useState("")
+    const [productName, setProductName] = useState(data?.productName ? data.productName : '')
+    const [hypothesisFeedback, setHypothesisFeedback] = useState(data?.hypothesisFeedback ? data.hypothesisFeedback : '')
     const dispatch = useAppDispatch()
     const loading = useAppSelector(isHypothesisListLoading)
+    const nodeId = useNodeId();
 
     const onChange = useCallback((evt) => {
         console.log(evt);
@@ -33,6 +35,10 @@ function productNode({ data }) {
 
     const onClickGenerateHypothesis = () => {
         console.log(dispatch(generateThreeHypothesisNodes(hypothesisFeedback)))
+    }
+
+    const handleUpdateNode = (field, value) => {
+        dispatch(updateNode({ field: field, value: value, nodeId: nodeId }))
     }
 
     return (
@@ -44,15 +50,17 @@ function productNode({ data }) {
                 style={handleStyle}
             />
             <Card className='text-xs flex flex-col gap-4'>
-                <CardHeader className="text-2xl">
-                    <Label htmlFor="product-heading">Product</Label>
+                <CardHeader>
+                    <Label htmlFor="product-heading" className='text-lg'>Product</Label>
                 </CardHeader>
                 <CardContent className='flex flex-col gap-4'>
                     <Label htmlFor='product-name'>Product name</Label>
                     <Input
                         id="product-name"
                         type="text"
-                        value={data?.productName}
+                        defaultValue={productName}
+                        onChange={(event) => setProductName(event.target.value)}
+                        onBlur={(e) => handleUpdateNode('productName', e.target.value)}
                     />
                 </CardContent>
                 <CardFooter className='flex flex-row gap-4'>
@@ -62,12 +70,13 @@ function productNode({ data }) {
                             id="hypothesis-feedback"
                             placeholder="Enter your feedback"
                             className="h-12 text-xs"
-                            value={hypothesisFeedback}
+                            value={data}
                             onChange={(event) => setHypothesisFeedback(event.target.value)}
+                            onBlur={(e) => handleUpdateNode('hypothesisFeedback', e.target.value)}
                         />
                     </div>
                     <Button variant="default" size="sm" className="mt-4 h-12" onClick={onClickGenerateHypothesis}>
-                        {loading ? <span className="group inline-flex items-center">
+                        {loading ? <span className="group inline-flex items-center font-normal">
                             <ClipLoader color={"#ffffff"} size={15} className="mr-2" />
                             Generating hypothesis
                         </span> :

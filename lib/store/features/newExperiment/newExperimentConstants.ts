@@ -59,7 +59,8 @@ export const edgeType = 'simplebezier';
 //             id: 'product_node',
 //             type: 'productNode',
 //             data: {
-//                 productName: 'Chandrike'
+//                 productName: 'Chandrike',
+//                 hypothesisFeedback: ''
 //             },
 //             position: {
 //                 x: 250,

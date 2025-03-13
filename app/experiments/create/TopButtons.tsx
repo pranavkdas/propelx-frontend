@@ -89,15 +89,15 @@ export default ({ rightPanelOpen, setRightPanelOpen }) => {
 
     return (
         <div className='flex flex-row gap-4'>
-            <Button>
+            <Button className="font-normal">
                 Save
             </Button>
-            <Button>
+            <Button className="font-normal">
                 Publish
             </Button>
             <Dialog open={open} onOpenChange={() => { if (open) { setOpen(false); dispatch(deleteSummary()); } else { setOpen(true); dispatch(deleteSummary()); } }}>
                 <Button onClick={handleGenerateSummary}>
-                    {loading && showSummaryLoading ? <span className="group inline-flex items-center">
+                    {loading && showSummaryLoading ? <span className="group inline-flex items-center font-normal">
                         <ClipLoader color={"#ffffff"} size={15} className="mr-2" />
                         Generating Summary
                     </span> :
@@ -121,7 +121,7 @@ export default ({ rightPanelOpen, setRightPanelOpen }) => {
                             <span className="group inline-flex items-center font-normal">
                                 <Copy className="size-4 mr-1" />Copy
                             </span>
-                            <span className="group inline-flex items-center">
+                            <span className="group inline-flex items-center font-normal">
                                 <Check className="mr-2 size-4" />
                                 Copied
                             </span>
@@ -135,7 +135,7 @@ export default ({ rightPanelOpen, setRightPanelOpen }) => {
                 </DialogContent>
             </Dialog>
             <Dialog open={openCreativesUpload} onOpenChange={setOpenCreativesUpload}>
-                <Button onClick={() => setOpenCreativesUpload(true)}>
+                <Button onClick={() => setOpenCreativesUpload(true)} className='font-normal'>
                     Upload creatives
                 </Button>
                 <DialogContent className="sm:max-w-xl">
@@ -175,7 +175,7 @@ export default ({ rightPanelOpen, setRightPanelOpen }) => {
                             <span className="group inline-flex items-center font-normal">
                                 Upload
                             </span>
-                            <span className="group inline-flex items-center">
+                            <span className="group inline-flex items-center font-normal">
                                 <ClipLoader color={"#ffffff"} size={20} className="mr-2" />
                                 Uploading..
                             </span>
@@ -191,7 +191,7 @@ export default ({ rightPanelOpen, setRightPanelOpen }) => {
             <Button
                 variant="outline"
                 size="md"
-                className="font-normal px-4"
+                className="px-4"
                 onClick={() => setRightPanelOpen(!rightPanelOpen)}
             >
                 <PanelRightOpen />

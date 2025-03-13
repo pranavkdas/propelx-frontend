@@ -6,6 +6,7 @@ import {
 } from '@xyflow/react';
 import { v4 as uuidv4 } from 'uuid';
 import { generateInitialHypotheses, generateTargetAudienceForHypothesis, generateSummaryForBranch, generateSummaryForAllBranches } from '@/lib/store/features/newExperiment/newExperimentAPI'
+import { getAllChildren } from '@/lib/store/features/newExperiment/utils'
 
 import { NewExperimentState, SourceNodeId, initialState, CurrentExperimentState, edgeType } from '@/lib/store/features/newExperiment/newExperimentConstants'
 
@@ -36,7 +37,7 @@ export const newExperimentSlice = createAppSlice({
                     {
                         id: 'product_node',
                         type: 'productNode',
-                        data: { productName: state.productName },
+                        data: { productName: state.productName, hypothesisFeedback: '' },
                         position: { x: 250, y: 25 },
                     },
                 )
@@ -238,19 +239,13 @@ export const newExperimentSlice = createAppSlice({
                 state.data.summary = null
             }
         ),
-        setMarketingChannelForNode: create.reducer(
-            (state, action: PayloadAction<any>) => {
-                let sourceNodeId = action.payload.sourceNodeId
-                let marketingChannel = action.payload.marketingChannel
-                state.nodes.forEach((item) => { if (item.id === sourceNodeId) { item.data.marketingChannel = marketingChannel } })
-            }
-        ),
         generateSummaryOfAllBranches: create.asyncThunk(
             // async (id: string, thunkApi) => { if you have things to pass to the function
             async (data, thunkAPI) => {
                 // Generate IDs here
                 const state = thunkAPI.getState()
                 const nodeIdDict = state.newExperiment.nodes.reduce((nodeIdDict, node) => { nodeIdDict[node.id] = node; return nodeIdDict }, {})
+                // Assumed only one target to each node (like a tree)
                 const edgeTargetIdSourceIdDict = state.newExperiment.edges.reduce((edgeTargetIdSourceIdDict, edge) => { edgeTargetIdSourceIdDict[edge.target] = edge.source; return edgeTargetIdSourceIdDict }, {})
                 let sourceNodeIdList = state.newExperiment.nodes.filter((node) => node.type == 'marketingChannelNode')
                 let finalDetails = ''
@@ -297,6 +292,40 @@ export const newExperimentSlice = createAppSlice({
                 },
             }
         ),
+        deleteNode: create.reducer(
+            (state, action: PayloadAction<any>) => {
+                let sourceNodeId = action.payload.sourceNodeId
+
+                const tree = {};
+                state.nodes.forEach(node => {
+                    tree[node.id] = [];
+                });
+
+                // Populate the tree dictionary with children
+                state.edges.forEach(edge => {
+                    const source = edge.source;
+                    const target = edge.target;
+                    tree[source].push(target);
+                });
+
+                let allChildren = getAllChildren(sourceNodeId, tree)
+                allChildren.push(sourceNodeId)
+                let nodesFinal = state.nodes.filter((node) => allChildren.indexOf(node.id) === -1)
+                let edgesFinal = state.edges.filter((edge) => allChildren.indexOf(edge.target) === -1)
+
+                state.nodes = nodesFinal
+                state.edges = edgesFinal
+            }
+        ),
+        updateNode: create.reducer(
+            (state, action: PayloadAction<any>) => {
+                let field = action.payload.field
+                let value = action.payload.value
+                let nodeId = action.payload.nodeId
+
+                state.nodes.map((node) => { if (node.id === nodeId) { node.data[field] = value } })
+            }
+        ),
     }),
     // You can define your selectors here. These selectors receive the slice
     // state as their first argument.
@@ -318,7 +347,7 @@ export const newExperimentSlice = createAppSlice({
 });
 
 // Action creators are generated for each case reducer function.
-export const { addNewExperiment, setProductNode, generateThreeHypothesisNodes, generateTargetAudienceNode, generateMarketingChannelNode, connectEdges, onDragNDropNode, generateSummaryOfTreeBranch, deleteSummary, generateSummaryOfAllBranches, setMarketingChannelForNode } =
+export const { addNewExperiment, setProductNode, generateThreeHypothesisNodes, generateTargetAudienceNode, generateMarketingChannelNode, connectEdges, onDragNDropNode, generateSummaryOfTreeBranch, deleteSummary, generateSummaryOfAllBranches, deleteNode, updateNode } =
     newExperimentSlice.actions;
 
 // Selectors returned by `slice.selectors` take the root state as their first argument.

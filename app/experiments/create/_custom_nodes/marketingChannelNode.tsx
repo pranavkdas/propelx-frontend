@@ -24,7 +24,7 @@ import { Button } from "@/components/ui/button";
 import { useNodeId } from '@xyflow/react';
 import { Textarea } from "@/components/ui/textarea"
 import { useAppDispatch, useAppSelector } from "@/lib/store/hooks";
-import { generateSummaryOfTreeBranch, isMarketingSummaryOfBranchLoading, getSummaryOfBranch, deleteSummary, setMarketingChannelForNode } from "@/lib/store/features/newExperiment/newExperimentSlice";
+import { generateSummaryOfTreeBranch, isMarketingSummaryOfBranchLoading, getSummaryOfBranch, deleteSummary, updateNode, deleteNode } from "@/lib/store/features/newExperiment/newExperimentSlice";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import ClipLoader from "react-spinners/ClipLoader";
 import { AnimatedSubscribeButton } from "@/components/magicui/animated-subscribe-button";
@@ -69,6 +69,10 @@ function marketingChannelNode({ data }) {
         await navigator.clipboard.writeText(summary);
     }
 
+    const handleDeleteNode = () => {
+        dispatch(deleteNode({ sourceNodeId: nodeId }))
+    }
+
     return (
         <div>
             <Handle
@@ -79,12 +83,12 @@ function marketingChannelNode({ data }) {
             />
             <Card className='text-xs flex flex-col gap-2'>
                 <CardHeader>
-                    <Label htmlFor="hypothesis-heading">Marketing Channel</Label>
+                    <Label htmlFor="hypothesis-heading" className='text-lg'>Marketing Channel</Label>
                 </CardHeader>
                 <CardContent>
-                    <Select onValueChange={(value) => dispatch(setMarketingChannelForNode({ sourceNodeId: nodeId, marketingChannel: value }))}>
+                    <Select onValueChange={(value) => dispatch(updateNode({ nodeId: nodeId, field: 'marketingChannel', value: value }))}>
                         <SelectTrigger>
-                            <SelectValue placeholder="Select Marketing Channel" />
+                            <SelectValue placeholder="Select Marketing Channel" defaultValue={data?.marketingChannel} />
                         </SelectTrigger>
                         <SelectContent>
                             <SelectItem value="google">Google</SelectItem>
@@ -93,12 +97,12 @@ function marketingChannelNode({ data }) {
                     </Select>
                 </CardContent>
                 <CardFooter className='flex flex-row gap-4'>
-                    <Button variant="outline" size="sm" className="mt-4 h-12 w-1/3">
+                    <Button variant="outline" size="sm" className="mt-4 h-12 w-1/3 font-normal" onClick={handleDeleteNode}>
                         Delete node
                     </Button>
                     <Dialog open={open} onOpenChange={() => { if (open) { setOpen(false); dispatch(deleteSummary()); } else { setOpen(true); dispatch(deleteSummary()); } }}>
                         <Button variant="default" size="sm" className="mt-4 h-12 w-2/3" onClick={handleGenerateSummary}>
-                            {loading && showSummaryLoading ? <span className="group inline-flex items-center">
+                            {loading && showSummaryLoading ? <span className="group inline-flex items-center font-normal">
                                 <ClipLoader color={"#ffffff"} size={15} className="mr-2" />
                                 Generating Summary
                             </span> :
@@ -122,13 +126,13 @@ function marketingChannelNode({ data }) {
                                     <span className="group inline-flex items-center font-normal">
                                         <Copy className="size-4 mr-1" />Copy
                                     </span>
-                                    <span className="group inline-flex items-center">
+                                    <span className="group inline-flex items-center font-normal">
                                         <Check className="mr-2 size-4" />
                                         Copied
                                     </span>
                                 </AnimatedSubscribeButton>
                                 <DialogClose asChild>
-                                    <Button type="button" variant="secondary" className="bg-gray-100" onClick={() => { setOpen(false); dispatch(deleteSummary()); }}>
+                                    <Button type="button" variant="secondary" className="bg-gray-100 font-normal" onClick={() => { setOpen(false); dispatch(deleteSummary()); }}>
                                         Close
                                     </Button>
                                 </DialogClose>
