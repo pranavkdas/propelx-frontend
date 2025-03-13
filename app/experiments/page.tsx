@@ -153,7 +153,7 @@ export default function ExperimentsPage() {
   return (
     <div className="flex flex-col h-screen">
       {/* Header */}
-      <div className="sticky top-0 z-[10] flex items-center justify-between border-b bg-background/50 p-3 text-2xl backdrop-blur-lg  pl-8">
+      <div className="sticky top-0 z-[10] flex items-center justify-between border-b bg-background/50 p-3 text-2xl backdrop-blur-lg  px-8">
         <span>Experiments</span>
         < NewExperimentSheet open={open} setOpen={setOpen} />
       </div>
@@ -166,25 +166,29 @@ export default function ExperimentsPage() {
         >
           <ResizablePanel defaultSize={75} className="px-8 py-4 h-full">
             <div className="flex justify-between items-center gap-2 mb-4">
-              <div className=" flex items-center justify-between px-0 text-2xl ">
+              <div className=" flex items-center justify-between px-0 text-lg font-normal ">
                 {filter} Experiments
               </div>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setRightPanelOpen(true)}
-              >
-                Open Panel
-              </Button>
-              <Select onValueChange={setFilter} defaultValue={filter}>
-                <SelectTrigger className="w-24">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="Active">Active</SelectItem>
-                  <SelectItem value="All">All</SelectItem>
-                </SelectContent>
-              </Select>
+              <div className="flex flex-row gap-4">
+                <Select onValueChange={setFilter} defaultValue={filter}>
+                  <SelectTrigger className="w-24">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Active">Active</SelectItem>
+                    <SelectItem value="All">All</SelectItem>
+                  </SelectContent>
+                </Select>
+                <Button
+                  variant="outline"
+                  size="md"
+                  className="font-normal px-4"
+                  onClick={() => setRightPanelOpen(true)}
+                >
+                  Show insights
+                </Button>
+              </div>
+
             </div>
             {/* Main content goes here */}
             <Accordion type="single" collapsible className="w-full space-y-4">

@@ -65,6 +65,18 @@ const NewExperimentSheet: React.FC = ({ open, setOpen }) => {
                         />
                     </div>
                     <div>
+                        <Label>Marketing Objective</Label>
+                        <Select onValueChange={setMarketingObjective}>
+                            <SelectTrigger>
+                                <SelectValue placeholder="Select Objective" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="awareness">Awareness</SelectItem>
+                                <SelectItem value="sales">Sales</SelectItem>
+                            </SelectContent>
+                        </Select>
+                    </div>
+                    <div>
                         <Label htmlFor="product-name">Product Name</Label>
                         <Input
                             id="product-name"
@@ -81,18 +93,6 @@ const NewExperimentSheet: React.FC = ({ open, setOpen }) => {
                             className="h-24"
                             onChange={(e) => setProductDescription(e.target.value)}
                         />
-                    </div>
-                    <div>
-                        <Label>Marketing Objective</Label>
-                        <Select onValueChange={setMarketingObjective}>
-                            <SelectTrigger>
-                                <SelectValue placeholder="Select Objective" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value="awareness">Awareness</SelectItem>
-                                <SelectItem value="sales">Sales</SelectItem>
-                            </SelectContent>
-                        </Select>
                     </div>
                 </div>
                 <SheetFooter className="flex gap-2 p-4">

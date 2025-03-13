@@ -17,7 +17,6 @@ export interface CurrentExperimentState extends NewExperimentState {
     nodes: Array<Node>,
     freeNodes: Array<Node>,
     edges: Array<Edge>,
-    hypothesisList: Array<NewHypothesisState>,
     data: any
     hypothesisListLoading: boolean,
     targetAudienceLoading: boolean,
@@ -33,7 +32,6 @@ export const initialState: CurrentExperimentState = {
     marketingObjective: null,
     nodes: [],
     edges: [],
-    hypothesisList: [],
     data: {},
     hypothesisListLoading: false,
     targetAudienceLoading: false,
@@ -194,7 +192,6 @@ export const edgeType = 'simplebezier';
 //             animated: true
 //         }
 //     ],
-//     hypothesisList: [],
 //     data: {
 //         hypothesis_list: [
 //             {

@@ -24,6 +24,10 @@ export const newExperimentSlice = createAppSlice({
                 state.productName = action.payload.productName;
                 state.productDescription = action.payload.productDescription;
                 state.marketingObjective = action.payload.marketingObjective;
+                state.freeNodes = [];
+                state.nodes = [];
+                state.edges = [];
+                state.data = {};
             },
         ),
         setProductNode: create.reducer(

@@ -44,7 +44,7 @@ function productNode({ data }) {
                 style={handleStyle}
             />
             <Card className='text-xs flex flex-col gap-4'>
-                <CardHeader>
+                <CardHeader className="text-2xl">
                     <Label htmlFor="product-heading">Product</Label>
                 </CardHeader>
                 <CardContent className='flex flex-col gap-4'>
@@ -53,15 +53,14 @@ function productNode({ data }) {
                         id="product-name"
                         type="text"
                         value={data?.productName}
-                    // disabled={true}
                     />
                 </CardContent>
                 <CardFooter className='flex flex-row gap-4'>
                     <div className='flex flex-col gap-4'>
-                        <Label htmlFor='hypothesis-feedback'>Hypothesis Feedback</Label>
+                        <Label htmlFor='hypothesis-feedback'>Generate with feedback</Label>
                         <Textarea
                             id="hypothesis-feedback"
-                            placeholder="Enter your hypothesis"
+                            placeholder="Enter your feedback"
                             className="h-12 text-xs"
                             value={hypothesisFeedback}
                             onChange={(event) => setHypothesisFeedback(event.target.value)}
