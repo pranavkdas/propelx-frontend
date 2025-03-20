@@ -15,7 +15,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from "@/components/ui/button";
 import { useNodeId } from '@xyflow/react';
 import { useAppDispatch, useAppSelector } from "@/lib/store/hooks";
-import { generateTargetAudienceNode, isTargetAudienceLoading } from "@/lib/store/features/newExperiment/newExperimentSlice";
+import { generateTargetAudienceNode, isTargetAudienceLoading, deleteNode, updateNode } from "@/lib/store/features/newExperiment/newExperimentSlice";
 import ClipLoader from "react-spinners/ClipLoader";
 
 const handleStyle = { height: 10, width: 10 };
@@ -30,6 +30,14 @@ function hypothesisNode({ data }) {
     const dispatch = useAppDispatch();
     const loading = useAppSelector(isTargetAudienceLoading)
 
+    // Values in hypothesis node
+
+    const [alias, setAlias] = useState(data?.alias ? data.alias : '')
+    const [description, setDescription] = useState(data?.hypothesis ? data.hypothesis : '')
+    const [impact, setImpact] = useState(data?.estimatedImpact ? data.estimatedImpact : '')
+    const [effort, setEffort] = useState(data?.estimatedEffort ? data.estimatedEffort : '')
+    const [rationale, setRationale] = useState(data?.rationale ? data.rationale : '')
+
     const handleGenerateTargetAudience = () => {
         console.log(nodeId, 'nodeID');
         setShowTargetAudienceLoading(true)
@@ -40,8 +48,15 @@ function hypothesisNode({ data }) {
         if (!loading) {
             setShowTargetAudienceLoading(false)
         }
-
     }, [loading])
+
+    const handleDeleteNode = () => {
+        dispatch(deleteNode({ sourceNodeId: nodeId }))
+    }
+
+    const handleUpdateNode = (field, value) => {
+        dispatch(updateNode({ field: field, value: value, nodeId: nodeId }))
+    }
 
     return (
         <div>
@@ -53,22 +68,26 @@ function hypothesisNode({ data }) {
             />
             <Card className='text-xs flex flex-col gap-4'>
                 <CardHeader>
-                    <Label htmlFor="hypothesis-heading">Hypothesis</Label>
+                    <Label htmlFor="hypothesis-heading" className='text-lg'>Hypothesis</Label>
                 </CardHeader>
                 <CardContent className='flex flex-col gap-4'>
                     <Label htmlFor='hypothesis-alias'>Alias</Label>
                     <Input
                         id="hypothesis-alias"
                         type="text"
-                        value={data?.alias}
+                        defaultValue={alias}
                         className='h-fit'
+                        onChange={(e) => setAlias(e.target.value)}
+                        onBlur={(e) => handleUpdateNode('alias', e.target.value)}
                     />
                     <Label htmlFor='hypothesis-description'>Description</Label>
                     <Textarea
                         id="hypothesis-description"
                         placeholder="Enter your hypothesis"
                         className="h-fit text-xs"
-                        value={data?.hypothesis}
+                        defaultValue={description}
+                        onChange={(e) => setDescription(e.target.value)}
+                        onBlur={(e) => handleUpdateNode('hypothesis', e.target.value)}
                     />
                     <div className="flex flex-row gap-4">
                         <div className='flex flex-col gap-4'>
@@ -76,7 +95,9 @@ function hypothesisNode({ data }) {
                             <Input
                                 id="hypothesis-estimated_impact"
                                 type="text"
-                                value={data?.estimatedImpact}
+                                defaultValue={impact}
+                                onChange={(e) => setImpact(e.target.value)}
+                                onBlur={(e) => handleUpdateNode('estimatedImpact', e.target.value)}
                             />
                         </div>
                         <div className='flex flex-col gap-4'>
@@ -84,7 +105,9 @@ function hypothesisNode({ data }) {
                             <Input
                                 id="hypothesis-estimated_confidence"
                                 type="text"
-                                value={data?.estimatedEffort}
+                                defaultValue={effort}
+                                onChange={(e) => setEffort(e.target.value)}
+                                onBlur={(e) => handleUpdateNode('estimatedEffort', e.target.value)}
                             />
                         </div>
                     </div>
@@ -93,20 +116,21 @@ function hypothesisNode({ data }) {
                         id="hypothesis-rationale"
                         placeholder="Enter your hypothesis"
                         className="h-fit text-xs"
-                        value={data?.rationale}
+                        defaultValue={rationale}
+                        onChange={(e) => setRationale(e.target.value)}
+                        onBlur={(e) => handleUpdateNode('rationale', e.target.value)}
                     />
                 </CardContent>
                 <CardFooter className='flex flex-row gap-4'>
-                    <Button variant="outline" size="sm" className="mt-4 h-12 w-1/2">
+                    <Button variant="outline" size="sm" className="mt-4 h-12 w-1/2" onClick={handleDeleteNode}>
                         Delete node
                     </Button>
                     <Button variant="default" size="sm" className="mt-4 h-12 w-1/2" onClick={handleGenerateTargetAudience}>
-                        {loading && showTargetAudienceLoading ? <span className="group inline-flex items-center">
+                        {loading && showTargetAudienceLoading ? <span className="group inline-flex items-center font-normal">
                             <ClipLoader color={"#ffffff"} size={15} className="mr-2" />
                             Generating Target Audience
                         </span> :
                             <span className="group inline-flex items-center font-normal"> Generate Target Audience</span>
-
                         }
                     </Button>
                 </CardFooter>

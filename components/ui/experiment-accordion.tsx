@@ -65,7 +65,7 @@ export default function ExperimentCard({ experiment }: { experiment: Experiment 
               className="data-[state=checked]:bg-primary"
             />
             <div>
-              <h3 className="text-xl font-semibold">{experiment.name}</h3>
+              <div className="text-lg font-medium">{experiment.name}</div>
               <div className="flex items-center gap-2 text-muted-foreground mt-1">
                 <Calendar className="h-4 w-4" />
                 <span>

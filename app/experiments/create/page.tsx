@@ -1,5 +1,5 @@
 "use client"
-import { useCallback, useRef, useEffect } from 'react';
+import { useCallback, useRef, useEffect, useState } from 'react';
 import {
     ReactFlow, ReactFlowProvider, useReactFlow, Controls,
     Background,
@@ -16,6 +16,7 @@ import { Button } from "@/components/ui/button";
 import { DnDProvider, useDnD } from './DnDContext';
 import styles from './experiment.module.css'
 import Sidebar from './Sidebar';
+import TopButtons from './TopButtons';
 
 import hypothesisNode from './_custom_nodes/hypothesisNode';
 import productNode from './_custom_nodes/productNode';
@@ -130,27 +131,37 @@ function Flow() {
 
 export default function () {
     const reactFlowWrapper = useRef(null);
-    return (
-        <div className={styles.dndflow} >
-            <ResizablePanelGroup direction="horizontal"
-                className="border rounded-lg h-full">
-                <ResizablePanel
-                    defaultSize={25}
-                    className="h-full relative"
-                >
-                    <div className={styles.reactflow_wrapper} ref={reactFlowWrapper}>
-                        <Flow />
-                    </div>
-                </ResizablePanel>
-                <ResizableHandle />
-                <ResizablePanel
-                    defaultSize={10}
-                    className="p-4 border-l h-full relative"
-                >
-                    <Sidebar />
-                </ResizablePanel>
-            </ResizablePanelGroup>
+    const [rightPanelOpen, setRightPanelOpen] = useState(false);
 
-        </div >
+    return (
+        <>
+            <div className="border-b bg-background/50 p-3 text-2xl backdrop-blur-lg pl-8 flex flex-row justify-between">
+                <span>Experiment Canvas</span>
+                < TopButtons rightPanelOpen={rightPanelOpen} setRightPanelOpen={setRightPanelOpen} />
+            </div>
+            <div className={styles.dndflow} >
+                <ResizablePanelGroup direction="horizontal"
+                    className="border rounded-lg h-full">
+                    <ResizablePanel
+                        defaultSize={25}
+                        className="h-full relative"
+                    >
+                        <div className={styles.reactflow_wrapper} ref={reactFlowWrapper}>
+                            <Flow />
+                        </div>
+                    </ResizablePanel>
+                    <ResizableHandle />
+                    {rightPanelOpen &&
+                        <ResizablePanel
+                            defaultSize={10}
+                            className="p-4 border-l h-full relative"
+                        >
+                            <Sidebar />
+                        </ResizablePanel>
+                    }
+                </ResizablePanelGroup>
+
+            </div >
+        </>
     );
 }
